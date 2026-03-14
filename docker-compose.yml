@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: pfa_dev
+      POSTGRES_USER: pfa
+      POSTGRES_PASSWORD: pfa_secret
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
