@@ -10,6 +10,7 @@
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   timestamp,
@@ -78,4 +79,66 @@ export const auditEvents = pgTable(
     index('idx_audit_events_user_id').on(table.userId),
     index('idx_audit_events_action').on(table.action),
   ],
+);
+
+export const userProfiles = pgTable('user_profiles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+  primaryIncomeCents: integer('primary_income_cents').default(0).notNull(),
+  rentCents: integer('rent_cents').default(0).notNull(),
+  debtPaymentsCents: integer('debt_payments_cents').default(0).notNull(),
+  emergencyFundCents: integer('emergency_fund_cents').default(0).notNull(),
+  savingsTargetCents: integer('savings_target_cents').default(0).notNull(),
+  bufferAmountCents: integer('buffer_amount_cents'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+export const incomeItems = pgTable(
+  'income_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    label: varchar('label', { length: 100 }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    frequency: varchar('frequency', { length: 20 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index('idx_income_items_user_id').on(table.userId)],
+);
+
+export const expenseItems = pgTable(
+  'expense_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    label: varchar('label', { length: 100 }).notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    frequency: varchar('frequency', { length: 20 }).notNull(),
+    isFixed: boolean('is_fixed').default(true).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index('idx_expense_items_user_id').on(table.userId)],
 );
