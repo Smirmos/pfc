@@ -1,0 +1,1 @@
+ALTER TABLE "analysis_cases" ALTER COLUMN "status" SET DEFAULT 'inactive';

@@ -22,6 +22,13 @@
       "when": 1773646876742,
       "tag": "0002_curved_obadiah_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773664959569,
+      "tag": "0003_messy_energizer",
+      "breakpoints": true
     }
   ]
 }
