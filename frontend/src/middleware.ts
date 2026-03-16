@@ -4,6 +4,7 @@ const protectedPaths = [
   '/dashboard',
   '/impulse',
   '/analysis',
+  '/analyses',
   '/profile',
   '/onboarding',
 ];
@@ -33,6 +34,7 @@ export const config = {
     '/dashboard/:path*',
     '/impulse/:path*',
     '/analysis/:path*',
+    '/analyses/:path*',
     '/profile/:path*',
     '/onboarding/:path*',
     '/login',

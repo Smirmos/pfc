@@ -13,7 +13,7 @@ import PersonIcon from '@mui/icons-material/Person';
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: <DashboardIcon /> },
   { label: 'Impulse', href: '/impulse', icon: <BoltIcon /> },
-  { label: 'Analysis', href: '/analysis', icon: <AddCircleOutlineIcon /> },
+  { label: 'Analysis', href: '/analyses/new', icon: <AddCircleOutlineIcon /> },
   { label: 'History', href: '/analysis/history', icon: <HistoryIcon /> },
   { label: 'Profile', href: '/profile', icon: <PersonIcon /> },
 ];

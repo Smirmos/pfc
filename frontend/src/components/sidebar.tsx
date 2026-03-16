@@ -29,7 +29,7 @@ const navItems = [
     icon: BoltIcon,
     accent: true,
   },
-  { label: 'New Analysis', href: '/analysis', icon: AddCircleOutlineIcon },
+  { label: 'New Analysis', href: '/analyses/new', icon: AddCircleOutlineIcon },
   { label: 'History', href: '/analysis/history', icon: HistoryIcon },
   { label: 'Profile', href: '/profile', icon: PersonIcon },
 ];
@@ -67,7 +67,7 @@ export default function Sidebar() {
 
       <List sx={{ px: 1, py: 2, flex: 1 }}>
         {navItems.map(({ label, href, icon: Icon, accent }) => {
-          const active = pathname === href;
+          const active = pathname === href || pathname.startsWith(href + '/');
           return (
             <ListItem key={href} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton

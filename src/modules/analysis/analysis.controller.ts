@@ -3,8 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
-  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -88,18 +86,29 @@ export class AnalysisController {
   // ── Stubs (future tickets) ────────────────────────────────────────
 
   @Post(':id/run')
-  run(@Param('id', ParseUUIDPipe) _id: string) {
-    throw new HttpException('Not Implemented', HttpStatus.NOT_IMPLEMENTED);
+  run(@Req() req: AuthRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.analysisService.run(req.user.id, id);
   }
 
   @Get(':id/results/latest')
-  getLatestResults(@Param('id', ParseUUIDPipe) _id: string) {
-    throw new HttpException('No results found', HttpStatus.NOT_FOUND);
+  getLatestResults(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.analysisService.getLatestResult(req.user.id, id);
+  }
+
+  @Post(':id/re-run')
+  reRun(@Req() req: AuthRequest, @Param('id', ParseUUIDPipe) id: string) {
+    return this.analysisService.run(req.user.id, id);
   }
 
   @Get(':id/scenarios')
-  getScenarios(@Param('id', ParseUUIDPipe) _id: string) {
-    return [];
+  getScenarios(
+    @Req() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.analysisService.getScenarios(req.user.id, id);
   }
 
   // ── Files ─────────────────────────────────────────────────────────
