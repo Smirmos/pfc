@@ -1,5 +1,5 @@
 import {
-  IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -14,29 +14,34 @@ export class UpsertProfileDto {
   @MaxLength(3)
   currency!: string;
 
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  primaryIncomeCents!: number;
-
-  @IsInt()
-  @Min(0)
-  rentCents!: number;
-
-  @IsInt()
-  @Min(0)
-  debtPaymentsCents!: number;
-
-  @IsInt()
-  @Min(0)
-  emergencyFundCents!: number;
-
-  @IsInt()
-  @Min(0)
-  savingsTargetCents!: number;
+  primaryIncomeDollars!: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  @Max(99_999_999)
-  bufferAmountCents?: number | null;
+  partnerIncomeDollars?: number;
+
+  @IsNumber()
+  @Min(0)
+  rentDollars!: number;
+
+  @IsNumber()
+  @Min(0)
+  debtPaymentsDollars!: number;
+
+  @IsNumber()
+  @Min(0)
+  emergencyFundDollars!: number;
+
+  @IsNumber()
+  @Min(0)
+  savingsTargetDollars!: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(999_999.99)
+  bufferAmountDollars?: number | null;
 }

@@ -15,6 +15,13 @@
       "when": 1773571266941,
       "tag": "0001_massive_peter_quill",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773646876742,
+      "tag": "0002_curved_obadiah_stane",
+      "breakpoints": true
     }
   ]
 }

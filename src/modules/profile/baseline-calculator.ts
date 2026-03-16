@@ -3,6 +3,7 @@ export type Frequency = (typeof FREQUENCIES)[number];
 
 export interface BaselineInput {
   primaryIncomeCents: number;
+  partnerIncomeCents: number;
   rentCents: number;
   debtPaymentsCents: number;
   emergencyFundCents: number;
@@ -54,7 +55,8 @@ export function calculateBaseline(input: BaselineInput): BaselineSummary {
     (sum, item) => sum + normalizeToMonthly(item.amountCents, item.frequency),
     0,
   );
-  const totalIncomeCents = input.primaryIncomeCents + itemIncome;
+  const totalIncomeCents =
+    input.primaryIncomeCents + input.partnerIncomeCents + itemIncome;
 
   const bufferSource: BaselineSummary['bufferSource'] =
     input.bufferAmountCents != null ? 'user_defined' : 'default_17.5pct';

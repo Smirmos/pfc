@@ -89,6 +89,7 @@ export const userProfiles = pgTable('user_profiles', {
     .references(() => users.id, { onDelete: 'cascade' }),
   currency: varchar('currency', { length: 3 }).default('USD').notNull(),
   primaryIncomeCents: integer('primary_income_cents').default(0).notNull(),
+  partnerIncomeCents: integer('partner_income_cents').default(0).notNull(),
   rentCents: integer('rent_cents').default(0).notNull(),
   debtPaymentsCents: integer('debt_payments_cents').default(0).notNull(),
   emergencyFundCents: integer('emergency_fund_cents').default(0).notNull(),

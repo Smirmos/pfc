@@ -1,0 +1,1 @@
+ALTER TABLE "user_profiles" ADD COLUMN "partner_income_cents" integer DEFAULT 0 NOT NULL;

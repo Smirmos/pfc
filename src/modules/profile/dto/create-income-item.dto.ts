@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsString, MaxLength, Min } from 'class-validator';
+import { IsIn, IsNumber, IsString, MaxLength, Min } from 'class-validator';
 import { FREQUENCIES } from '../baseline-calculator';
 
 export class CreateIncomeItemDto {
@@ -6,9 +6,9 @@ export class CreateIncomeItemDto {
   @MaxLength(100)
   label!: string;
 
-  @IsInt()
-  @Min(1)
-  amountCents!: number;
+  @IsNumber()
+  @Min(0.01)
+  amountDollars!: number;
 
   @IsString()
   @IsIn(FREQUENCIES)

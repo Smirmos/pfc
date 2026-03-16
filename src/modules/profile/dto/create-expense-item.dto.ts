@@ -1,7 +1,7 @@
 import {
   IsBoolean,
   IsIn,
-  IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -14,9 +14,9 @@ export class CreateExpenseItemDto {
   @MaxLength(100)
   label!: string;
 
-  @IsInt()
-  @Min(1)
-  amountCents!: number;
+  @IsNumber()
+  @Min(0.01)
+  amountDollars!: number;
 
   @IsString()
   @IsIn(FREQUENCIES)

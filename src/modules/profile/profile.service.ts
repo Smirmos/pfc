@@ -16,6 +16,10 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpsertProfileDto } from './dto/upsert-profile.dto';
 
+function dollarsToCents(dollars: number): number {
+  return Math.round(dollars * 100);
+}
+
 @Injectable()
 export class ProfileService {
   constructor(private readonly drizzle: DrizzleService) {}
@@ -74,6 +78,7 @@ export class ProfileService {
       id: profile.id,
       currency: profile.currency,
       primaryIncomeCents: profile.primaryIncomeCents,
+      partnerIncomeCents: profile.partnerIncomeCents,
       rentCents: profile.rentCents,
       debtPaymentsCents: profile.debtPaymentsCents,
       emergencyFundCents: profile.emergencyFundCents,
@@ -89,12 +94,16 @@ export class ProfileService {
   async upsertProfile(userId: string, dto: UpsertProfileDto) {
     const values = {
       currency: dto.currency,
-      primaryIncomeCents: dto.primaryIncomeCents,
-      rentCents: dto.rentCents,
-      debtPaymentsCents: dto.debtPaymentsCents,
-      emergencyFundCents: dto.emergencyFundCents,
-      savingsTargetCents: dto.savingsTargetCents,
-      bufferAmountCents: dto.bufferAmountCents ?? null,
+      primaryIncomeCents: dollarsToCents(dto.primaryIncomeDollars),
+      partnerIncomeCents: dollarsToCents(dto.partnerIncomeDollars ?? 0),
+      rentCents: dollarsToCents(dto.rentDollars),
+      debtPaymentsCents: dollarsToCents(dto.debtPaymentsDollars),
+      emergencyFundCents: dollarsToCents(dto.emergencyFundDollars),
+      savingsTargetCents: dollarsToCents(dto.savingsTargetDollars),
+      bufferAmountCents:
+        dto.bufferAmountDollars != null
+          ? dollarsToCents(dto.bufferAmountDollars)
+          : null,
     };
 
     const result = await this.drizzle.db
@@ -118,13 +127,18 @@ export class ProfileService {
         .values({
           userId,
           currency: dto.currency ?? 'USD',
-          primaryIncomeCents: dto.primaryIncomeCents ?? 0,
-          rentCents: dto.rentCents ?? 0,
-          debtPaymentsCents: dto.debtPaymentsCents ?? 0,
-          emergencyFundCents: dto.emergencyFundCents ?? 0,
-          savingsTargetCents: dto.savingsTargetCents ?? 0,
+          primaryIncomeCents: dollarsToCents(dto.primaryIncomeDollars ?? 0),
+          partnerIncomeCents: dollarsToCents(dto.partnerIncomeDollars ?? 0),
+          rentCents: dollarsToCents(dto.rentDollars ?? 0),
+          debtPaymentsCents: dollarsToCents(dto.debtPaymentsDollars ?? 0),
+          emergencyFundCents: dollarsToCents(dto.emergencyFundDollars ?? 0),
+          savingsTargetCents: dollarsToCents(dto.savingsTargetDollars ?? 0),
           bufferAmountCents:
-            dto.bufferAmountCents !== undefined ? dto.bufferAmountCents : null,
+            dto.bufferAmountDollars !== undefined
+              ? dto.bufferAmountDollars != null
+                ? dollarsToCents(dto.bufferAmountDollars)
+                : null
+              : null,
         })
         .returning();
       return result[0];
@@ -132,17 +146,23 @@ export class ProfileService {
 
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (dto.currency !== undefined) updates.currency = dto.currency;
-    if (dto.primaryIncomeCents !== undefined)
-      updates.primaryIncomeCents = dto.primaryIncomeCents;
-    if (dto.rentCents !== undefined) updates.rentCents = dto.rentCents;
-    if (dto.debtPaymentsCents !== undefined)
-      updates.debtPaymentsCents = dto.debtPaymentsCents;
-    if (dto.emergencyFundCents !== undefined)
-      updates.emergencyFundCents = dto.emergencyFundCents;
-    if (dto.savingsTargetCents !== undefined)
-      updates.savingsTargetCents = dto.savingsTargetCents;
-    if (dto.bufferAmountCents !== undefined)
-      updates.bufferAmountCents = dto.bufferAmountCents;
+    if (dto.primaryIncomeDollars !== undefined)
+      updates.primaryIncomeCents = dollarsToCents(dto.primaryIncomeDollars);
+    if (dto.partnerIncomeDollars !== undefined)
+      updates.partnerIncomeCents = dollarsToCents(dto.partnerIncomeDollars);
+    if (dto.rentDollars !== undefined)
+      updates.rentCents = dollarsToCents(dto.rentDollars);
+    if (dto.debtPaymentsDollars !== undefined)
+      updates.debtPaymentsCents = dollarsToCents(dto.debtPaymentsDollars);
+    if (dto.emergencyFundDollars !== undefined)
+      updates.emergencyFundCents = dollarsToCents(dto.emergencyFundDollars);
+    if (dto.savingsTargetDollars !== undefined)
+      updates.savingsTargetCents = dollarsToCents(dto.savingsTargetDollars);
+    if (dto.bufferAmountDollars !== undefined)
+      updates.bufferAmountCents =
+        dto.bufferAmountDollars != null
+          ? dollarsToCents(dto.bufferAmountDollars)
+          : null;
 
     const result = await this.drizzle.db
       .update(userProfiles)
@@ -164,6 +184,7 @@ export class ProfileService {
 
     return calculateBaseline({
       primaryIncomeCents: profile?.primaryIncomeCents ?? 0,
+      partnerIncomeCents: profile?.partnerIncomeCents ?? 0,
       rentCents: profile?.rentCents ?? 0,
       debtPaymentsCents: profile?.debtPaymentsCents ?? 0,
       emergencyFundCents: profile?.emergencyFundCents ?? 0,
@@ -203,7 +224,7 @@ export class ProfileService {
       .values({
         userId,
         label: dto.label,
-        amountCents: dto.amountCents,
+        amountCents: dollarsToCents(dto.amountDollars),
         frequency: dto.frequency,
       })
       .returning();
@@ -217,7 +238,8 @@ export class ProfileService {
   ) {
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (dto.label !== undefined) updates.label = dto.label;
-    if (dto.amountCents !== undefined) updates.amountCents = dto.amountCents;
+    if (dto.amountDollars !== undefined)
+      updates.amountCents = dollarsToCents(dto.amountDollars);
     if (dto.frequency !== undefined) updates.frequency = dto.frequency;
 
     const result = await this.drizzle.db
@@ -262,7 +284,7 @@ export class ProfileService {
       .values({
         userId,
         label: dto.label,
-        amountCents: dto.amountCents,
+        amountCents: dollarsToCents(dto.amountDollars),
         frequency: dto.frequency,
         isFixed: dto.isFixed ?? true,
       })
@@ -277,7 +299,8 @@ export class ProfileService {
   ) {
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (dto.label !== undefined) updates.label = dto.label;
-    if (dto.amountCents !== undefined) updates.amountCents = dto.amountCents;
+    if (dto.amountDollars !== undefined)
+      updates.amountCents = dollarsToCents(dto.amountDollars);
     if (dto.frequency !== undefined) updates.frequency = dto.frequency;
     if (dto.isFixed !== undefined) updates.isFixed = dto.isFixed;
 

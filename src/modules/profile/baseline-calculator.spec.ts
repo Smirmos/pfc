@@ -30,6 +30,7 @@ describe('normalizeToMonthly', () => {
 describe('calculateBaseline', () => {
   const base: BaselineInput = {
     primaryIncomeCents: 0,
+    partnerIncomeCents: 0,
     rentCents: 0,
     debtPaymentsCents: 0,
     emergencyFundCents: 0,
@@ -221,6 +222,16 @@ describe('calculateBaseline', () => {
       });
 
       expect(result.totalIncomeCents).toBe(650_000);
+    });
+
+    it('should include partner income in total', () => {
+      const result = calculateBaseline({
+        ...base,
+        primaryIncomeCents: 550_000,
+        partnerIncomeCents: 300_000,
+      });
+
+      expect(result.totalIncomeCents).toBe(850_000);
     });
 
     it('should normalize annual income items to monthly', () => {

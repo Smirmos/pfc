@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedPaths = ['/dashboard', '/impulse', '/analysis', '/profile'];
+const protectedPaths = [
+  '/dashboard',
+  '/impulse',
+  '/analysis',
+  '/profile',
+  '/onboarding',
+];
 
 const authPaths = ['/login', '/register'];
 
@@ -28,6 +34,7 @@ export const config = {
     '/impulse/:path*',
     '/analysis/:path*',
     '/profile/:path*',
+    '/onboarding/:path*',
     '/login',
     '/register',
   ],

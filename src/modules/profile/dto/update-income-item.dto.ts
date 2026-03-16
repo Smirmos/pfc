@@ -1,6 +1,6 @@
 import {
   IsIn,
-  IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -14,10 +14,10 @@ export class UpdateIncomeItemDto {
   @MaxLength(100)
   label?: string;
 
-  @IsInt()
+  @IsNumber()
   @IsOptional()
-  @Min(1)
-  amountCents?: number;
+  @Min(0.01)
+  amountDollars?: number;
 
   @IsString()
   @IsOptional()

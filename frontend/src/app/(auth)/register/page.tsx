@@ -37,7 +37,7 @@ export default function RegisterPage() {
         firstName || undefined,
         lastName || undefined,
       );
-      router.replace('/dashboard');
+      router.replace('/onboarding');
     } catch {
       setError('Registration failed. Please try again.');
     } finally {

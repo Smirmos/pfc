@@ -1,5 +1,5 @@
 import {
-  IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -16,33 +16,38 @@ export class UpdateProfileDto {
   currency?: string;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  primaryIncomeCents?: number;
+  primaryIncomeDollars?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  rentCents?: number;
+  partnerIncomeDollars?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  debtPaymentsCents?: number;
+  rentDollars?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  emergencyFundCents?: number;
+  debtPaymentsDollars?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  savingsTargetCents?: number;
+  emergencyFundDollars?: number;
 
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   @Min(0)
-  @Max(99_999_999)
-  bufferAmountCents?: number | null;
+  savingsTargetDollars?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(999_999.99)
+  bufferAmountDollars?: number | null;
 }
