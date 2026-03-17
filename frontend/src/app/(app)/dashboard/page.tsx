@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -13,6 +14,7 @@ import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
 import Link from '@mui/material/Link';
 import Skeleton from '@mui/material/Skeleton';
+import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -249,10 +251,24 @@ function ActiveBurdensCard({ burdens }: { burdens: AnalysisSummary[] }) {
 
 function RecentAnalyses({
   analyses,
+  onReRunSuccess,
 }: {
   analyses: AnalysisSummary[];
+  onReRunSuccess: () => void;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const reRunMutation = useMutation({
+    mutationFn: async (analysisId: string) => {
+      const { data } = await api.post(`/analyses/${analysisId}/re-run`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      onReRunSuccess();
+    },
+  });
 
   return (
     <Box>
@@ -271,7 +287,7 @@ function RecentAnalyses({
           component="button"
           variant="body2"
           underline="hover"
-          onClick={() => router.push('/analysis/history')}
+          onClick={() => router.push('/analyses')}
         >
           View all
         </Link>
@@ -337,9 +353,8 @@ function RecentAnalyses({
                       size="small"
                       variant="text"
                       startIcon={<RefreshIcon sx={{ fontSize: 16 }} />}
-                      onClick={() =>
-                        router.push(`/analyses/${a.id}/inputs`)
-                      }
+                      disabled={reRunMutation.isPending}
+                      onClick={() => reRunMutation.mutate(a.id)}
                     >
                       Re-run
                     </Button>
@@ -438,6 +453,7 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const [snackbar, setSnackbar] = useState('');
   const displayName =
     user?.firstName ?? user?.email?.split('@')[0] ?? 'there';
 
@@ -596,7 +612,10 @@ export default function DashboardPage() {
 
         {/* Row 3 - Recent Analyses */}
         <Grid item xs={12}>
-          <RecentAnalyses analyses={dashboard.recent_analyses} />
+          <RecentAnalyses
+            analyses={dashboard.recent_analyses}
+            onReRunSuccess={() => setSnackbar('Analysis updated')}
+          />
         </Grid>
 
         {/* Row 4 - Recent Impulse Checks */}
@@ -604,6 +623,13 @@ export default function DashboardPage() {
           <RecentImpulseChecks />
         </Grid>
       </Grid>
+
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar('')}
+        message={snackbar}
+      />
     </Box>
   );
 }
