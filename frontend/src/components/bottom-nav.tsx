@@ -14,7 +14,7 @@ const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: <DashboardIcon /> },
   { label: 'Impulse', href: '/impulse', icon: <BoltIcon /> },
   { label: 'Analysis', href: '/analyses/new', icon: <AddCircleOutlineIcon /> },
-  { label: 'History', href: '/analysis/history', icon: <HistoryIcon /> },
+  { label: 'History', href: '/analyses', icon: <HistoryIcon /> },
   { label: 'Profile', href: '/profile', icon: <PersonIcon /> },
 ];
 

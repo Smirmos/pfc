@@ -17,6 +17,7 @@ import { CreateAnalysisDto } from './dto/create-analysis.dto';
 import { UpdateAnalysisDto } from './dto/update-analysis.dto';
 import { SaveInputsDto } from './dto/save-inputs.dto';
 import { ListAnalysesDto } from './dto/list-analyses.dto';
+import { BulkDeleteDto } from './dto/bulk-delete.dto';
 
 type AuthRequest = FastifyRequest & { user: { id: string } };
 
@@ -57,6 +58,11 @@ export class AnalysisController {
   ) {
     await this.analysisService.softDelete(req.user.id, id);
     return { deleted: true };
+  }
+
+  @Post('bulk-delete')
+  bulkDelete(@Req() req: AuthRequest, @Body() dto: BulkDeleteDto) {
+    return this.analysisService.bulkDelete(req.user.id, dto.ids);
   }
 
   @Post(':id/duplicate')

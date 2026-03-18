@@ -51,53 +51,96 @@ export class AnalysisService {
       status?: string;
       page?: number;
       limit?: number;
+      sort?: string;
     },
   ) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    const conditions = [
-      eq(analysisCases.userId, userId),
-      sql`${analysisCases.status} != 'deleted'`,
+    const whereFragments = [
+      sql`ac.user_id = ${userId}`,
+      sql`ac.status != 'deleted'`,
     ];
-
     if (filters.category) {
-      conditions.push(
-        eq(
-          analysisCases.category,
-          filters.category as 'vehicle' | 'home' | 'appliance' | 'other',
-        ),
-      );
+      whereFragments.push(sql`ac.category = ${filters.category}`);
     }
     if (filters.status) {
-      conditions.push(
-        eq(
-          analysisCases.status,
-          filters.status as 'active' | 'inactive' | 'deleted',
-        ),
-      );
+      whereFragments.push(sql`ac.status = ${filters.status}`);
     }
+    const whereClause = sql.join(whereFragments, sql` AND `);
 
-    const rows = await this.drizzle.db
-      .select()
-      .from(analysisCases)
-      .where(and(...conditions))
-      .orderBy(desc(analysisCases.createdAt))
-      .limit(limit)
-      .offset(offset);
+    const orderClause = this.buildSortClause(filters.sort);
 
-    const countResult = await this.drizzle.db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(analysisCases)
-      .where(and(...conditions));
+    const rows = await this.drizzle.db.execute(sql`
+      SELECT
+        ac.id,
+        ac.name,
+        ac.category,
+        ac.status,
+        ac.created_at,
+        lr.score,
+        lr.vulnerability_bucket AS projected_vulnerability_bucket,
+        lr.monthly_burden_cents
+      FROM analysis_cases ac
+      LEFT JOIN LATERAL (
+        SELECT ar.score, ar.vulnerability_bucket, ar.monthly_burden_cents
+        FROM analysis_results ar
+        WHERE ar.case_id = ac.id
+        ORDER BY ar.created_at DESC
+        LIMIT 1
+      ) lr ON true
+      WHERE ${whereClause}
+      ORDER BY ${orderClause}
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `);
+
+    const statsRows = await this.drizzle.db.execute(sql`
+      SELECT
+        count(*)::int                                                                     AS total,
+        MAX(lr.score)::int                                                                AS highest_score,
+        ROUND(AVG(lr.score))::int                                                         AS average_score,
+        COUNT(*) FILTER (WHERE ac.status = 'active' AND lr.monthly_burden_cents > 0)::int AS active_burdens_count
+      FROM analysis_cases ac
+      LEFT JOIN LATERAL (
+        SELECT ar.score, ar.monthly_burden_cents
+        FROM analysis_results ar
+        WHERE ar.case_id = ac.id
+        ORDER BY ar.created_at DESC
+        LIMIT 1
+      ) lr ON true
+      WHERE ${whereClause}
+    `);
+
+    const s = statsRows.rows[0] as {
+      total: number;
+      highest_score: number | null;
+      average_score: number | null;
+      active_burdens_count: number;
+    };
 
     return {
-      data: rows,
+      data: (rows.rows as Record<string, unknown>[]).map((r) => ({
+        id: r.id as string,
+        name: r.name as string,
+        category: r.category as string,
+        status: r.status as string,
+        score: (r.score as number) ?? null,
+        projected_vulnerability_bucket:
+          (r.projected_vulnerability_bucket as string) ?? null,
+        monthly_burden_cents: (r.monthly_burden_cents as number) ?? null,
+        created_at: r.created_at as string,
+      })),
       meta: {
         page,
         limit,
-        total: countResult[0].count,
+        total: s.total,
+      },
+      stats: {
+        highest_score: s.highest_score,
+        average_score: s.average_score,
+        active_burdens_count: s.active_burdens_count ?? 0,
       },
     };
   }
@@ -191,6 +234,25 @@ export class AnalysisService {
       .returning({ id: analysisCases.id });
 
     if (!result[0]) throw new NotFoundException('Analysis case not found');
+  }
+
+  async bulkDelete(userId: string, ids: string[]) {
+    const result = await this.drizzle.db
+      .update(analysisCases)
+      .set({ status: 'deleted' as const, updatedAt: new Date() })
+      .where(
+        and(
+          eq(analysisCases.userId, userId),
+          sql`${analysisCases.id} IN (${sql.join(
+            ids.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
+          sql`${analysisCases.status} != 'deleted'`,
+        ),
+      )
+      .returning({ id: analysisCases.id });
+
+    return { deleted: result.length };
   }
 
   async duplicate(userId: string, caseId: string) {
@@ -519,6 +581,24 @@ export class AnalysisService {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────
+
+  private buildSortClause(sort?: string) {
+    switch (sort) {
+      case 'created_at:asc':
+        return sql`ac.created_at ASC`;
+      case 'score:desc':
+        return sql`lr.score DESC NULLS LAST`;
+      case 'score:asc':
+        return sql`lr.score ASC NULLS LAST`;
+      case 'name:asc':
+        return sql`LOWER(ac.name) ASC`;
+      case 'name:desc':
+        return sql`LOWER(ac.name) DESC`;
+      case 'created_at:desc':
+      default:
+        return sql`ac.created_at DESC`;
+    }
+  }
 
   private async assertOwnership(userId: string, caseId: string) {
     const row = await this.drizzle.db

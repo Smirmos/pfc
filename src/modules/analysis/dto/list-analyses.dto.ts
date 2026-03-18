@@ -5,6 +5,15 @@ import { ANALYSIS_CATEGORIES } from './create-analysis.dto';
 
 const FILTER_STATUSES = ['active', 'inactive'] as const;
 
+const SORT_OPTIONS = [
+  'created_at:desc',
+  'created_at:asc',
+  'score:desc',
+  'score:asc',
+  'name:asc',
+  'name:desc',
+] as const;
+
 export class ListAnalysesDto {
   @IsOptional()
   @IsString()
@@ -28,4 +37,9 @@ export class ListAnalysesDto {
   @Min(1)
   @Max(100)
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(SORT_OPTIONS)
+  sort?: string;
 }
